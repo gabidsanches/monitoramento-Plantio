@@ -12,6 +12,11 @@
     ALERTA_ACIDO:   .asciiz "   [ALERTA] pH muito Acido!\n"
     ALERTA_BASICO:  .asciiz "   [ALERTA] pH muito Basico!\n"
     STATUS_OK:      .asciiz "   [STATUS] Sistema Estavel!\n"
+    MSG_VETOR:      .asciiz "\n[MEMORIA VETOR] Historico Umidade: "
+    SPACE:          .asciiz "  "
+    historico_umid: .word 50, 50, 50, 50, 50
+    indice_atual:   .word 0
+    tam_vetor:      .word 5
     LIMITE_SECO:    .word 40
     LIMITE_TEMP:    .word 30
     PH_MIN:         .word 6
@@ -73,10 +78,47 @@ main:
     move $a0, $s2
     syscall
     
+    lw $t0, indice_atual
+    mul $t1, $t0, 4
+    la $t2, historico_umid
+    add $t2, $t2, $t1
+    sw $s0, 0($t2)
+
+    addi $t0, $t0, 1
+    lw $t3, tam_vetor
+    div $t0, $t3
+    mfhi $t0
+    sw $t0, indice_atual
+
+    li $v0, 4
+    la $a0, MSG_VETOR
+    syscall
+
+    li $t5, 0
+    lw $t6, tam_vetor
+
+loop_print:
+    beq $t5, $t6, fim_print
+    
+    mul $t7, $t5, 4
+    la $t8, historico_umid
+    add $t8, $t8, $t7
+    lw $a0, 0($t8)
+    
+    li $v0, 1
+    syscall
+    
+    li $v0, 4
+    la $a0, SPACE
+    syscall
+
+    addi $t5, $t5, 1
+    j loop_print
+
+fim_print:
     li $v0, 4
     la $a0, QUEBRA_LINHA
     syscall
-    
     li $v0, 4
     la $a0, QUEBRA_LINHA
     syscall
